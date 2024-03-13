@@ -3,11 +3,11 @@
 source /programs/biogrids.shrc
 export BCFTOOLS_X=1.12
 
-IDS=data/eur_kgp.txt
-REGION=$( awk '{ print $1 }' data/langefeld_region.txt)
+IDS=ikzf1/data/eur_kgp.txt
+REGION=1:205643772-207643772
 CHR=$( echo $REGION | cut -d':' -f1 )
-VCF1K=/reference_databases/1000G_VCF/GRCh38/Genotype_VCFs/20201028_CCDG_14151_B01_GRM_WGS_2020-08-05_chr7.recalibrated_variants.vcf.gz
-PREFIX=data/${REGION}
+VCF1K=/reference_databases/1000G_VCF/phase3/ALL.chr1.phase3_shapeit2_mvncall_integrated_v5a.20130502.genotypes.vcf.gz
+PREFIX=data/chr${REGION}
 VCFOUT=${PREFIX}.vcf.gz
 
 bcftools view --threads 4 -r $REGION $VCF1K |\
