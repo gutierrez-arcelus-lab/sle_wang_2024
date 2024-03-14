@@ -75,7 +75,7 @@ ld_risk_var <-
     pivot_longer(-snp_id, names_to = "var_id", values_to = "r2") |>
     dplyr::select(var_id, r2) |>
     separate(var_id, c("chrom", "pos", "ref", "alt"), sep = ":", convert = TRUE) |>
-    mutate(chrom = as.character(chrom), r2 = abs(r2))
+    mutate(chrom = as.character(chrom))
 
 langefeld <- 
     "./data/langefeld_clean.tsv" |>

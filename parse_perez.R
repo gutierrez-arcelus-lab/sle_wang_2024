@@ -42,8 +42,7 @@ ld_risk_var <-
     separate(var_id, c("chrom", "pos", "ref", "alt"), sep = ":", convert = TRUE) |>
     mutate(chrom = as.character(chrom)) |>
     left_join(ld_vcf, join_by(chrom, pos, ref, alt)) |>
-    dplyr::select(chrom, pos, rsid, other_allele = ref, effect_allele = alt, r2) |>
-    mutate(r2 = abs(r2))
+    dplyr::select(chrom, pos, rsid, other_allele = ref, effect_allele = alt, r2)
 
 eqtls_ld <-
     eqtls |>
@@ -53,48 +52,48 @@ eqtls_ld <-
 
 loc_list <-
     eqtls_ld |>
-    map(~locus(data = ., 
+    map(~locus(data = .,
                gene = 'IKBKE',
                flank = 5e4,
                LD = "r2",
                ens_db = "EnsDb.Hsapiens.v75"))
 
-cm_scatter <-
-    gg_scatter(loc_list$cm, 
-               index_snp = 
-               labels = c("rs2297550"),
-               legend_pos = "topright")
-
-ncm_scatter <-
-    gg_scatter(loc_list$ncm, 
-               labels = "index",
-               legend_pos = "topright")
-
-nk_scatter <-
-    gg_scatter(loc_list$nk, 
-               labels = "index",
-               legend_pos = "topright")
-
-pbmc_scatter <-
-    gg_scatter(loc_list$pbmc, 
-               labels = "index",
-               legend_pos = "topright")
-
-t4_scatter <-
-    gg_scatter(loc_list$t4, 
-               labels = "index",
-               legend_pos = "topright")
-
-t8_scatter <-
-    gg_scatter(loc_list$t8, 
-               labels = "index",
-               legend_pos = "topright")
-
-g <- gg_genetracks(loc_list$pbmc)
-
-p_out <- cm_scatter / ncm_scatter / nk_scatter / pbmc_scatter / t4_scatter / t8_scatter / g
-
-ggsave("./plots/locuszoom_perez_eqtls.png", p_out, height = 12, width = 6)
+# cm_scatter <-
+#     gg_scatter(loc_list$cm, 
+#                index_snp = 
+#                labels = c("rs2297550"),
+#                legend_pos = "topright")
+# 
+# ncm_scatter <-
+#     gg_scatter(loc_list$ncm, 
+#                labels = "index",
+#                legend_pos = "topright")
+# 
+# nk_scatter <-
+#     gg_scatter(loc_list$nk, 
+#                labels = "index",
+#                legend_pos = "topright")
+# 
+# pbmc_scatter <-
+#     gg_scatter(loc_list$pbmc, 
+#                labels = "index",
+#                legend_pos = "topright")
+# 
+# t4_scatter <-
+#     gg_scatter(loc_list$t4, 
+#                labels = "index",
+#                legend_pos = "topright")
+# 
+# t8_scatter <-
+#     gg_scatter(loc_list$t8, 
+#                labels = "index",
+#                legend_pos = "topright")
+# 
+# g <- gg_genetracks(loc_list$pbmc)
+# 
+# p_out <- cm_scatter / ncm_scatter / nk_scatter / pbmc_scatter / t4_scatter / t8_scatter / g
+# 
+# ggsave("./plots/locuszoom_perez_eqtls.png", p_out, height = 12, width = 6)
 
 gg_scatter_all <- 
     eqtls_ld |>
