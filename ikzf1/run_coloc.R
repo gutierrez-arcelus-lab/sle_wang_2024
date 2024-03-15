@@ -105,3 +105,36 @@ out <-
 
 write_tsv(out, "./results/coloc_results.tsv")
 
+
+## Wang et al
+wang <- 
+    "/lab-share/IM-Gutierrez-e2/Public/GWAS/SLE/Wang2021/ASN/harmonized/33536424-GCST90011866-EFO_0002690.h.tsv.gz" |>
+    data.table::fread() |>
+    filter(!is.na(beta)) |>
+    filter(hm_chrom == 7) |> 
+    select(chrom = hm_chrom, pos = hm_pos, rsid = hm_rsid,  
+	   other_allele = hm_other_allele, effect_allele = hm_effect_allele, 
+	   p = p_value, beta, se = standard_error) |>
+    arrange(pos) |>
+    as_tibble()
+
+min_df_wang <- 
+    inner_join(eqtl_stats, wang,
+	       join_by(pos, rsid, ref == other_allele, alt == effect_allele),
+	       suffix = c("_eqtl", "_gwas")) |>
+    select(dataset, gene_id, molecular_trait_id, var_id = rsid, 
+	   beta_gwas, se_gwas, beta_eqtl, se_eqtl, an_eqtl = an, maf_eqtl = maf)
+
+coloc_res_wang <- min_df_wang |>
+    unite("subset_id", c(dataset, gene_id, molecular_trait_id), sep = ",") |> 
+    {function(x) split(x, x$subset_id)}() |>
+    map(run_coloc)
+
+coloc_results_summary_wang <- map(coloc_res_wang, "summary") |>
+    map_dfr(function(x) as_tibble(x, rownames = "stat"), .id = "id") |>
+    pivot_wider(names_from = stat, values_from = value) |>
+    select(id, nsnps, pp0 = PP.H0.abf, pp1 = PP.H1.abf, pp2 = PP.H2.abf, pp3 = PP.H3.abf, pp4 = PP.H4.abf) |>
+    separate(id, c("dataset_id", "gene_id", "molecular_trait_id"), sep = ",")
+
+
+

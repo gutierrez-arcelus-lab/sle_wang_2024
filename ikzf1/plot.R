@@ -147,3 +147,63 @@ g <- gg_genetracks(loc_bentham)
 ggsave("./plots/locuszoom.png", 
        loc_bentham_ggplot / loc_langefeld_ggplot / g,
        width = 10, height = 8)
+
+
+### Wang et al
+ld_chi_vcf <- 
+    "./data/chr7:49766451-50738073_chinese.vcf.gz" |>
+    data.table::fread(skip = "#CHROM") |>
+    as_tibble() |>
+    mutate_at(vars(`#CHROM`), ~str_remove(., "chr")) |>
+    unite("ID", c(`#CHROM`, POS, REF, ALT), sep = ":")
+
+ld_plink_chi <- 
+    "./data/chr7:49766451-50738073_chinese.ld" |>
+    data.table::fread() |>
+    as_tibble() |>
+    setNames(ld_chi_vcf$ID) |>
+    add_column(snp_id = ld_chi_vcf$ID, .before = 1)
+
+ld_risk_var_chi <-
+    ld_plink_chi |>
+    dplyr::filter(grepl(paste0("^7:", risk_pos, ":"), snp_id)) |>
+    pivot_longer(-snp_id, names_to = "var_id", values_to = "r2") |>
+    dplyr::select(var_id, r2) |>
+    separate(var_id, c("chrom", "pos", "ref", "alt"), sep = ":", convert = TRUE) |>
+    mutate(chrom = as.character(chrom))
+
+wang <- 
+    "/lab-share/IM-Gutierrez-e2/Public/GWAS/SLE/Wang2021/ASN/harmonized/33536424-GCST90011866-EFO_0002690.h.tsv.gz" |>
+    data.table::fread() |>
+    dplyr::filter(!is.na(beta)) |>
+    dplyr::filter(hm_chrom == 7) |> 
+    dplyr::select(chrom = hm_chrom, pos = hm_pos, rsid = hm_rsid,  
+	   other_allele = hm_other_allele, effect_allele = hm_effect_allele, 
+	   p = p_value, beta, se = standard_error) |>
+    dplyr::arrange(pos) |>
+    dplyr::mutate(chrom = as.character(chrom))
+
+wang_ld <-
+    wang |>
+    dplyr::filter(between(pos, min(langefeld_ld$pos), max(langefeld_ld$pos))) |>
+    left_join(ld_risk_var_chi, join_by(chrom, pos, other_allele == ref, effect_allele == alt))
+
+loc_wang <- 
+    locus(data = wang_ld, 
+	  gene = 'IKZF1',
+	  flank = 5e5,
+	  LD = "r2",
+	  ens_db = ens_data)
+
+loc_wang_ggplot <-
+    gg_scatter(loc_wang, 
+	       labels = "index",
+	       nudge_y = .5, 
+	       legend_pos = "topright") +
+    labs(title = "Wang et al.")
+
+gw <- gg_genetracks(loc_wang)
+
+ggsave("./plots/locuszoom_chinese.png", 
+       loc_wang_ggplot / gw,
+       width = 10, height = 6)

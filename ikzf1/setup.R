@@ -154,3 +154,12 @@ dat |>
     pull(SAMPLE_NAME) |>
     write_lines("./data/eur_kgp.txt")
 
+chinese <- c("CDX", "CHB", "CHS")
+
+dat |>
+    distinct(SAMPLE_NAME, POPULATION) |>
+    filter(POPULATION %in% chinese) |>
+    arrange(SAMPLE_NAME) |>
+    pull(SAMPLE_NAME) |>
+    write_lines("./data/chi_kgp.txt")
+
